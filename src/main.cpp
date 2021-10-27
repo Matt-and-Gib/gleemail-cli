@@ -10,8 +10,9 @@
 #include <iostream>
 
 
-int main(const unsigned short argc, const char* argv[]) {
+int main(int argc, const char* argv[]) {
 	std::cout << "Start" << std::endl;
 
+	std::cout << "End" << std::endl;
 	return 0;
 }
