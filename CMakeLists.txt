@@ -6,5 +6,5 @@ set(CMAKE_BUILD_TYPE Debug)
 add_executable (glEEmailNetworkTester src/main.cpp)
 
 if(WIN32)
-	target_link_libraries(glEEmailNetworkTester wsock32 ws2_32)
+	target_link_libraries(glEEmail-cli wsock32 ws2_32)
 endif()

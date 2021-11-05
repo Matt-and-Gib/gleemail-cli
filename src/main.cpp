@@ -116,7 +116,7 @@ int main(int argc, const char* argv[]) {
 		return 1;
 	}
 
-	sockInit();
+	/*sockInit();
 
 	const int socketID = socket(AF_INET, SOCK_DGRAM, 0);
 	if(socketID == -1) {
@@ -144,6 +144,6 @@ int main(int argc, const char* argv[]) {
 	}
 
 	close(socketID);
-	sockQuit();
+	sockQuit();*/
 	return 0;
 }
