@@ -7,9 +7,15 @@
 	#include <sys/socket.h>
 	#include <arpa/inet.h>
 	#include <unistd.h>
+
+	typedef int SOCKET;
 #endif
 
 #include <iostream>
+
+#define GLEEMAIL_PORT 29453
+const static int ONE_FLAG = 1; //Necessary for setsockopt
+const static constexpr unsigned short MAX_BUFFER_SIZE = 512;
 
 
 int sockInit(void) {
@@ -50,9 +56,44 @@ int sockQuit(void) {
 }
 
 
-int main(int argc, const char* argv[]) {
-	std::cout << "Start" << std::endl;
+int networkListen(const int socketID, sockaddr* remoteAddress, socklen_t& remoteAddressLength, char incomingBuffer[MAX_BUFFER_SIZE], int& incomingDataLength) {
+	if((incomingDataLength = recvfrom(socketID, incomingBuffer, MAX_BUFFER_SIZE, MSG_WAITALL, remoteAddress, &remoteAddressLength)) > 0) {
+		std::cout << incomingBuffer << std::endl;
+		//sendto(socketID, payload, strlen(payload), MSG_CONFIRM, (struct sockaddr*)&remoteAddress, remoteAddressLength);
+	}
 
-	std::cout << "End" << std::endl;
+	return 0;
+}
+
+
+int main(int argc, const char* argv[]) {
+	sockInit();
+
+	const int socketID = socket(AF_INET, SOCK_DGRAM, 0);
+	if(socketID == -1) {
+		return 4;
+	}
+
+	sockaddr_in listeningAddress;
+	listeningAddress.sin_family = AF_INET;
+	listeningAddress.sin_addr.s_addr = INADDR_ANY;
+	listeningAddress.sin_port = GLEEMAIL_PORT;
+
+	setsockopt(socketID, SOL_SOCKET, SO_REUSEADDR, &ONE_FLAG, sizeof(ONE_FLAG));
+	if(bind(socketID, reinterpret_cast<sockaddr*>(&listeningAddress), sizeof(listeningAddress)) == -1) {
+		return 2;
+	}
+
+	sockaddr_in remoteAddress;
+	socklen_t remoteAddressLength = sizeof(remoteAddress);
+
+	char incomingBuffer[MAX_BUFFER_SIZE] = {0};
+	int incomingDataLength = 0;
+
+	while(1) {
+		networkListen(socketID, reinterpret_cast<sockaddr*>(&remoteAddress), remoteAddressLength, incomingBuffer, incomingDataLength);
+	}
+
+	sockQuit();
 	return 0;
 }
