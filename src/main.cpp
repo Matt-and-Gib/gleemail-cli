@@ -12,6 +12,8 @@
 #endif
 
 #include <iostream>
+#include "input.hpp"
+
 
 #define GLEEMAIL_PORT 29453
 #define MAX_IP_STRING_LENGTH 16 //+1 for terminator in worst-case size
@@ -128,10 +130,16 @@ int main(int argc, const char* argv[]) {
 	listeningAddress.sin_addr.s_addr = INADDR_ANY;
 	listeningAddress.sin_port = GLEEMAIL_PORT;
 
-	setsockopt(socketID, SOL_SOCKET, SO_REUSEADDR, &ONE_FLAG, sizeof(ONE_FLAG));
+	setsockopt(socketID, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &ONE_FLAG, sizeof(ONE_FLAG));
 	if(bind(socketID, reinterpret_cast<sockaddr*>(&listeningAddress), sizeof(listeningAddress)) == -1) {
 		return 2;
 	}
+
+	Input input;
+
+	bool run = true;
+
+	char userInput[265] = {0};
 
 	sockaddr_in remoteAddress;
 	socklen_t remoteAddressLength = sizeof(remoteAddress);
@@ -139,8 +147,18 @@ int main(int argc, const char* argv[]) {
 	char incomingBuffer[MAX_BUFFER_SIZE] = {0};
 	int incomingDataLength = 0;
 
-	while(1) {
-		networkListen(socketID, reinterpret_cast<sockaddr*>(&remoteAddress), remoteAddressLength, incomingBuffer, incomingDataLength);
+	std::cout << "Listening" << std::endl;
+
+	while(run) {
+		input.processInput(run, userInput);
+		//networkListen(socketID, reinterpret_cast<sockaddr*>(&remoteAddress), remoteAddressLength, incomingBuffer, incomingDataLength);
+
+		incomingDataLength = recvfrom(socketID, incomingBuffer, MAX_BUFFER_SIZE, MSG_WAITALL, reinterpret_cast<sockaddr*>(&listeningAddress), &remoteAddressLength);
+		if(incomingDataLength > 0) {
+			incomingBuffer[incomingDataLength] = '\0';
+			std::cout << incomingBuffer << std::endl;
+			//sendto(socketID, payload, strlen(payload), MSG_CONFIRM, (struct sockaddr*)&remoteAddress, remoteAddressLength);
+		}
 	}
 
 	close(socketID);
