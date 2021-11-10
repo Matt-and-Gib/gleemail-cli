@@ -11,6 +11,8 @@
 	typedef int SOCKET;
 #endif
 
+#include <chrono>
+#include <thread>
 #include <iostream>
 #include "input.hpp"
 
@@ -135,11 +137,12 @@ int main(int argc, const char* argv[]) {
 		return 2;
 	}
 
-	Input input;
-
 	bool run = true;
-
 	char userInput[265] = {0};
+
+	Input input;
+	std::thread getInput(&Input::processInput, input, std::ref(run));
+	getInput.detach();
 
 	sockaddr_in remoteAddress;
 	socklen_t remoteAddressLength = sizeof(remoteAddress);
@@ -150,15 +153,19 @@ int main(int argc, const char* argv[]) {
 	std::cout << "Listening" << std::endl;
 
 	while(run) {
-		input.processInput(run, userInput);
+		std::cout << "top" << std::endl;
+
+		//input.processInput(run, userInput);
 		//networkListen(socketID, reinterpret_cast<sockaddr*>(&remoteAddress), remoteAddressLength, incomingBuffer, incomingDataLength);
 
-		incomingDataLength = recvfrom(socketID, incomingBuffer, MAX_BUFFER_SIZE, MSG_WAITALL, reinterpret_cast<sockaddr*>(&listeningAddress), &remoteAddressLength);
+		/*incomingDataLength = recvfrom(socketID, incomingBuffer, MAX_BUFFER_SIZE, MSG_DONTWAIT, reinterpret_cast<sockaddr*>(&listeningAddress), &remoteAddressLength);
 		if(incomingDataLength > 0) {
 			incomingBuffer[incomingDataLength] = '\0';
 			std::cout << incomingBuffer << std::endl;
 			//sendto(socketID, payload, strlen(payload), MSG_CONFIRM, (struct sockaddr*)&remoteAddress, remoteAddressLength);
-		}
+		}*/
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	}
 
 	close(socketID);

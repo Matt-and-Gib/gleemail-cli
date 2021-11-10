@@ -7,4 +7,6 @@ add_executable (glEEmail-cli src/main.cpp)
 
 if(WIN32)
 	target_link_libraries(glEEmail-cli wsock32 ws2_32)
+else()
+	target_link_libraries(glEEmail-cli pthread)
 endif()
